@@ -1,6 +1,6 @@
 #python 3.12
 jupyter
-numpy
+numpy<2.4
 pandas
 tqdm
 opencv-python
@@ -21,3 +21,5 @@ shapely
 scikit-image
 faiss-cpu
 dotenv
+shap
+dice-ml
