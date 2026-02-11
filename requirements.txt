@@ -1,0 +1,23 @@
+#python 3.12
+jupyter
+numpy
+pandas
+tqdm
+opencv-python
+Pillow
+joblib
+matplotlib
+transformers
+torch
+torchvision
+scikit-learn
+odfpy
+sentencepiece
+protobuf
+pytorch-fid
+graphviz
+seaborn
+shapely
+scikit-image
+faiss-cpu
+dotenv
