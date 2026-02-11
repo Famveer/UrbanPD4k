@@ -5,14 +5,14 @@ import numpy as np
 from .lib.networks import PSPNetForSemanticSegmentation, PSPNetImageProcessor
 
 class PSP_ResNet50_Dilated(nn.Module):
-    def __init__(self, device, model_path):
+    def __init__(self, device, model_path, dataset="ade20k"):
         super(PSP_ResNet50_Dilated, self).__init__()
         self.model_name = "PSP_ResNet50_Dilated"
         self.model_arch = "shuangzhao/pspnet-resnet50-ade-dilated"
         self.device = device
         
-        encoder_path = f"{model_path}/SceneParser_ADE20K/pspnet_resnet50/encoder_epoch_20.pth"
-        decoder_path = f"{model_path}/SceneParser_ADE20K/pspnet_resnet50/decoder_epoch_20.pth"
+        encoder_path = f"{model_path}/pspnet_resnet50/encoder_epoch_20.pth"
+        decoder_path = f"{model_path}/pspnet_resnet50/decoder_epoch_20.pth"
         
         self.processor = PSPNetImageProcessor.from_pretrained(
                         self.model_arch,

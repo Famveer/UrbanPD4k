@@ -60,7 +60,8 @@ class ImageSegmenter(BaseModel):
                                              )
                 
             elif "psp_resnet50_dilated" == model_name.lower(): # ONLY ADE20K PYTORCH
-                self.model = PSP_ResNet50_Dilated(model_path=self.model_path, 
+                self.model = PSP_ResNet50_Dilated(model_path=self.model_path,  
+                                                  dataset=self.dataset,
                                                   device=self.device,
                                                  )
                 
