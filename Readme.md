@@ -1,6 +1,6 @@
 # Urban Physical Disorder (UrbanPD-4k) Dataset
 
-<img src="./media/stats.png"  height=400px;>
+<img src="./.media/stats.png"  height=400px;>
 
 This is the repository for the [UPD4K Dataset](https://visualdslab.com/papers/UrbanPD4k/). We provide some information of the dataset, and [starter code](./notebooks/UPD4k_Counterfactuals.ipynb) to explore the data.
 
