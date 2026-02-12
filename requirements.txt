@@ -23,3 +23,4 @@ faiss-cpu
 dotenv
 shap
 dice-ml
+pydantic-settings

@@ -26,13 +26,15 @@ class CounterfactualAnalyzer:
         
         # Result dataframes
         # original values - counterfactual
-        self.cfs_variations = pd.DataFrame()
+        self.features_variations = pd.DataFrame()
         # number of changes
-        self.cfs_num_variations = pd.DataFrame()
+        self.features_num_variations = pd.DataFrame()
         # counterfactuals
         self.counterfactuals = pd.DataFrame()
         # Most closets counterfactuals
-        self.nearest_cfs = pd.DataFrame()
+        self.nearest_cf = pd.DataFrame()
+        # Diff between otiginal and the most closets counterfactuals
+        self.nearest_cf_variation = pd.DataFrame()
         
         # Initialize DiCE
         if data_df is not None and feature_names is not None and model is not None:
@@ -98,13 +100,24 @@ class CounterfactualAnalyzer:
                     random_seed=random_seed
                 )
                 
-                self._process_counterfactuals(dice_exp, sample, id_)
+                self._process_counterfactuals(dice_exp, 
+                                              sample, 
+                                              id_, 
+                                              desired_target,
+                                              min_probability=stopping_threshold,
+                                              )
                 
             except Exception as e:
                 if verbose:
                     print(f"Error processing image {id_}: {e}")
     
-    def _process_counterfactuals(self, dice_exp, sample, image_id):
+    def _process_counterfactuals(self, 
+                                 dice_exp, 
+                                 sample, 
+                                 image_id, 
+                                 desired_target,
+                                 min_probability=0.5,
+                                 ):
         """Process and store counterfactual results."""
         # Extract counterfactual values
         cf_values = dice_exp.cf_examples_list[0].final_cfs_df.iloc[:, :-1].copy()
@@ -112,40 +125,103 @@ class CounterfactualAnalyzer:
         # Calculate differences
         values_diff = cf_values.subtract(sample.iloc[0], axis=1)
         values_diff["image_id"] = image_id
-        self.cfs_variations = pd.concat([self.cfs_variations, values_diff], ignore_index=True)
+        self.features_variations = pd.concat([self.features_variations, values_diff], ignore_index=True)
         
         # Count number of changes
         number_diff = pd.DataFrame(values_diff.ne(0).astype(int).sum()).T
         number_diff["image_id"] = image_id
-        self.cfs_num_variations = pd.concat([self.cfs_num_variations, number_diff], ignore_index=True)
+        self.features_num_variations = pd.concat([self.features_num_variations, number_diff], ignore_index=True)
         
-        # Find closest counterfactual
-        self._find_closest_counterfactual(cf_values, sample, image_id)
+        # Find closest counterfactual that changes to desired class
+        self._find_closest_counterfactual(cf_values, 
+                                          sample, 
+                                          image_id, 
+                                          desired_target, 
+                                          min_probability=min_probability,
+                                          )
         
         # Store counterfactual values
         cf_values["image_id"] = image_id
         self.counterfactuals = pd.concat([self.counterfactuals, cf_values], ignore_index=True)
     
-    def _find_closest_counterfactual(self, cf_values, sample, image_id):
-        """Find and process the closest counterfactual."""
-        # Calculate Euclidean distances
-        distances = euclidean_distances(cf_values, sample)
-        closest_row_index = np.argmin(distances)
+    
+    def _find_closest_counterfactual(self, 
+                                     cf_values, 
+                                     sample, 
+                                     image_id, 
+                                     desired_target, 
+                                     min_probability=0.5,
+                                     ):
+        """
+        Find and process the closest counterfactual that changes prediction to desired class.
+        
+        Parameters:
+        -----------
+        cf_values : pd.DataFrame
+            Generated counterfactual samples
+        sample : pd.DataFrame
+            Original sample
+        image_id : str/int
+            Image identifier
+        desired_target : int
+            Target class index (e.g., 0 for unsafe, 1 for safe)
+        min_probability : float, optional (default=0.5)
+            Minimum probability threshold for the desired class
+        """
+        # Get predictions for all counterfactuals
+        cf_predictions = self.model.predict_proba(cf_values)
+        
+        # Get predicted class and probability for desired target
+        cf_predicted_classes = np.argmax(cf_predictions, axis=1)
+        cf_desired_class_probs = cf_predictions[:, desired_target]
+        
+        # Filter counterfactuals that:
+        # 1. Predict the desired target class
+        # 2. Have probability >= min_probability for the desired class
+        valid_cf_mask = (cf_predicted_classes == desired_target) & (cf_desired_class_probs >= min_probability)
+        valid_cf_indices = np.where(valid_cf_mask)[0]
+        
+        if len(valid_cf_indices) == 0:
+            print(f"Warning: No counterfactuals found for image {image_id} that predict class {desired_target} with prob >= {min_probability}")
+            # Fallback: try with any counterfactual that predicts desired class
+            valid_cf_mask = cf_predicted_classes == desired_target
+            valid_cf_indices = np.where(valid_cf_mask)[0]
+            
+            if len(valid_cf_indices) == 0:
+                print(f"Error: No counterfactuals found for image {image_id} that predict class {desired_target}")
+                return
+        
+        # Filter to only valid counterfactuals
+        valid_cf_values = cf_values.iloc[valid_cf_indices]
+        
+        # Calculate Euclidean distances only for valid counterfactuals
+        distances = euclidean_distances(valid_cf_values, sample)
+        
+        # Find the closest valid counterfactual
+        closest_valid_index = np.argmin(distances)
+        closest_row_index = valid_cf_indices[closest_valid_index]
         closest_row = cf_values.iloc[closest_row_index]
+        
+        # Store the nearest counterfactual
+        self.nearest_cf = pd.concat([self.nearest_cf, closest_row.to_frame().T], ignore_index=True)
         
         # Get predictions
         orig_predict = self.model.predict_proba(sample)
         new_predict = self.model.predict_proba(closest_row.to_frame().T)
-        diff_predict = orig_predict - new_predict
+        diff_predict = new_predict - orig_predict
         
-        # Store results
+        # Store results with detailed information
         closest_row_diff = closest_row.subtract(sample.iloc[0]).to_frame().T
         closest_row_diff["image_id"] = image_id
         closest_row_diff["orig_prob"] = [orig_predict]
         closest_row_diff["new_prob"] = [new_predict]
-        closest_row_diff["diff_prob"] = diff_predict[:, 0].tolist()[0]
+        closest_row_diff["diff_prob"] = [diff_predict]
+        closest_row_diff["orig_class"] = np.argmax(orig_predict, axis=1)[0]
+        closest_row_diff["new_class"] = np.argmax(new_predict, axis=1)[0]
+        closest_row_diff["desired_class_prob"] = cf_predictions[closest_row_index, desired_target]
+        closest_row_diff["euclidean_dist"] = distances[closest_valid_index][0]
         
-        self.nearest_cfs = pd.concat([self.nearest_cfs, closest_row_diff], ignore_index=True)
+        self.nearest_cf_variation = pd.concat([self.nearest_cf_variation, closest_row_diff], ignore_index=True)
     
     def plot_variations(self, fig_size=(40, 30), top_k=None, color_dict=None):
         """
@@ -168,7 +244,7 @@ class CounterfactualAnalyzer:
                 constrained_layout=True
             )
             
-            features_df = self.cfs_num_variations.iloc[:, :-1]
+            features_df = self.features_num_variations.iloc[:, :-1]
             sorted_columns = features_df.median().sort_values(ascending=False).index.tolist()
             
             if top_k is not None:
@@ -207,10 +283,13 @@ class CounterfactualAnalyzer:
     
     def load(self, load_path):
         try:
-            self.cfs_variations = pd.read_csv(f"{load_path}/cfs_variations.csv", sep=";", low_memory=False)
-            self.cfs_num_variations = pd.read_csv(f"{load_path}/cfs_num_variations.csv", sep=";", low_memory=False)
             self.counterfactuals = pd.read_csv(f"{load_path}/counterfactuals.csv", sep=";", low_memory=False)
-            self.nearest_cfs = pd.read_csv(f"{load_path}/nearest_cfs.csv", sep=";", low_memory=False)
+            
+            self.features_variations = pd.read_csv(f"{load_path}/features_variations.csv", sep=";", low_memory=False)
+            self.features_num_variations = pd.read_csv(f"{load_path}/features_num_variations.csv", sep=";", low_memory=False)
+            
+            self.nearest_cf = pd.read_csv(f"{load_path}/nearest_cf.csv", sep=";", low_memory=False)
+            self.nearest_cf_variation = pd.read_csv(f"{load_path}/nearest_cf_variation.csv", sep=";", low_memory=False)
         
         except Exception as e:
             print("Error", e)
@@ -226,8 +305,9 @@ class CounterfactualAnalyzer:
     def get_results(self):
         """Return all result dataframes."""
         return {
-            'cfs_variations': self.cfs_variations,
-            'cfs_num_variations': self.cfs_num_variations,
             'counterfactuals': self.counterfactuals,
-            'nearest_cfs': self.nearest_cfs
+            'nearest_cf': self.nearest_cf,
+            'nearest_cf_variation': self.nearest_cf_variation,
+            'features_variations': self.features_variations,
+            'features_num_variations': self.features_num_variations,
         }
