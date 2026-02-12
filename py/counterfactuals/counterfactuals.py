@@ -1,3 +1,5 @@
+import re
+import ast
 import dice_ml
 import pandas as pd
 import numpy as np
@@ -200,10 +202,12 @@ class CounterfactualAnalyzer:
         # Find the closest valid counterfactual
         closest_valid_index = np.argmin(distances)
         closest_row_index = valid_cf_indices[closest_valid_index]
-        closest_row = cf_values.iloc[closest_row_index]
+        closest_row = cf_values.iloc[closest_row_index].copy()
+        closest_row_T = closest_row.to_frame().T.copy()
+        closest_row_T["image_id"] = image_id
         
         # Store the nearest counterfactual
-        self.nearest_cf = pd.concat([self.nearest_cf, closest_row.to_frame().T], ignore_index=True)
+        self.nearest_cf = pd.concat([self.nearest_cf, closest_row_T], ignore_index=True)
         
         # Get predictions
         orig_predict = self.model.predict_proba(sample)
@@ -284,21 +288,42 @@ class CounterfactualAnalyzer:
     def load(self, load_path):
         try:
             self.counterfactuals = pd.read_csv(f"{load_path}/counterfactuals.csv", sep=";", low_memory=False)
-            
-            self.features_variations = pd.read_csv(f"{load_path}/features_variations.csv", sep=";", low_memory=False)
-            self.features_num_variations = pd.read_csv(f"{load_path}/features_num_variations.csv", sep=";", low_memory=False)
-            
-            self.nearest_cf = pd.read_csv(f"{load_path}/nearest_cf.csv", sep=";", low_memory=False)
-            self.nearest_cf_variation = pd.read_csv(f"{load_path}/nearest_cf_variation.csv", sep=";", low_memory=False)
-        
         except Exception as e:
             print("Error", e)
-    
+            
+        try:
+            self.features_variations = pd.read_csv(f"{load_path}/features_variations.csv", sep=";", low_memory=False)
+        except Exception as e:
+            print("Error", e)
+        
+        try:
+            self.features_num_variations = pd.read_csv(f"{load_path}/features_num_variations.csv", sep=";", low_memory=False)
+        except Exception as e:
+            print("Error", e)
+        
+        try:    
+            self.nearest_cf = pd.read_csv(f"{load_path}/nearest_cf.csv", sep=";", low_memory=False)
+        except Exception as e:
+            print("Error", e)
+        
+        try:
+            cur_df = pd.read_csv(f"{load_path}/nearest_cf_variation.csv", sep=";", low_memory=False)
+            cur_df["orig_prob"] = cur_df["orig_prob"].apply(ast.literal_eval)
+            cur_df["new_prob"] = cur_df["new_prob"].apply(ast.literal_eval)
+            cur_df["diff_prob"] = cur_df["diff_prob"].apply(ast.literal_eval)
+            self.nearest_cf_variation = cur_df.copy()
+        except Exception as e:
+            print("Error", e)
+        
     
     def save(self, save_path):
         results = self.get_results()
         for df_name in results.keys():
             cur_df = results[df_name].copy()
+            if df_name == "nearest_cf_variation":
+                cur_df["orig_prob"] = cur_df["orig_prob"].apply(lambda x: x.tolist())
+                cur_df["new_prob"] = cur_df["new_prob"].apply(lambda x: x.tolist())
+                cur_df["diff_prob"] = cur_df["diff_prob"].apply(lambda x: x.tolist())
             cur_df.to_csv(f"{save_path}/{df_name}.csv", sep=";", index=False)
     
     

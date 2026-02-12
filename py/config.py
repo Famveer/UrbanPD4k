@@ -25,4 +25,6 @@ class Config(BaseSettings):
     TOP_K_FEATURES: int = int(os.getenv('TOP_K_FEATURES', "15"))
     NUMBER_CFS: int = int(os.getenv('NUMBER_CFS', "50"))
     
+    CHANGE_THRESHOLD: float = float(os.getenv("CHANGE_THRESHOLD", "0.001"))
+    
     RANDOM_STATE: int = int(os.getenv('RANDOM_STATE', "42"))
