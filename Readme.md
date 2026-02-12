@@ -48,13 +48,15 @@ To download Street view images, please do not hesitate to send a message.
     DATA_PATH=/path_to/datasets/
     MODEL_PATH=/path_to/models/
   ```
-* First, run the notebook `notebooks/Data/ADE20k/Generate_Segmentations.ipynb`.  
+* First, run the notebook `notebooks/Data/ADE20k/Scene_Segmentations.ipynb`.  
+  Choose the best model to segment images.  
+  Next, run the notebook `notebooks/Data/ADE20k/Generate_Segmentations.ipynb`.  
   Then, run the notebook `notebooks/Data/ADE20k/Group_Segmentations.ipynb`.  
 
 * Second, run the notebook `notebooks/Data/UPD4k/Generate_UPD4k.ipynb`.  
   Next, run the notebook `notebooks/Data/UPD4k/Group_UPD4k.ipynb`.  
   
-* Train the safety classifier at `notebooks/Models/Ensemble_Classification.ipynb`.  
+* Train the safety classifier at `notebooks/Models/Ensemble_Classifications.ipynb`.  
 * Generates Post-Hoc SHAP Explanations at `notebooks/Models/SHAP_Explanations.ipynb`.  
 * Generates CounterFactuals at `notebooks/Models/CounterFactuals.ipynb`.  
 * Generates LLM human-language Interpretations at `notebooks/Models/LLM_Interpretations.ipynb`.  
