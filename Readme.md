@@ -57,9 +57,11 @@ To download Street view images, please do not hesitate to send a message.
   Next, run the notebook `notebooks/Data/UPD4k/Group_UPD4k.ipynb`.  
   
 * Train the safety classifier at `notebooks/Models/Ensemble_Classifications.ipynb`.  
-* Generates Post-Hoc SHAP Explanations at `notebooks/Models/SHAP_Explanations.ipynb`.  
-* Generates CounterFactuals at `notebooks/Models/CounterFactuals.ipynb`.  
-* Generates LLM human-language Interpretations at `notebooks/Models/LLM_Interpretations.ipynb`.  
+
+* Generates Post-Hoc SHAP Explanations at `notebooks/Explanations/SHAP.ipynb`.  
+* Generates CounterFactuals at `notebooks/Explanations/CounterFactuals.ipynb`.  
+
+* Generates LLM human-language Interpretations at `notebooks/LLM/Interpretations.ipynb`.  
 
 
 # Citation
