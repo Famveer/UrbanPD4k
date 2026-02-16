@@ -11,7 +11,7 @@ class Config(BaseSettings):
     
     ML_TASK: str = os.getenv('ML_TASK', "classifications")
     MODEL_TASK_NAME: str = os.getenv('MODEL_TASK_NAME', "RandomForest")
-    PRECEPTION_METRIC: str = os.getenv('PRECEPTION_METRIC', "safety")
+    PERCEPTION_METRIC: str = os.getenv('PERCEPTION_METRIC', "safety")
 
     SEG_MODEL_NAME: str = os.getenv('SEG_MODEL_NAME', "OneFormer_Swin_Large")
     SEG_DATASET: str = os.getenv('SEG_DATASET', "ade20k") # cityscapes
