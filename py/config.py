@@ -14,8 +14,9 @@ class Config(BaseSettings):
     PERCEPTION_METRIC: str = os.getenv('PERCEPTION_METRIC', "safety")
 
     SEG_MODEL_NAME: str = os.getenv('SEG_MODEL_NAME', "OneFormer_Swin_Large")
-    SEG_DATASET: str = os.getenv('SEG_DATASET', "ade20k") # cityscapes
+    SEG_DATASET: str = os.getenv('SEG_DATASET', "ADE20k") # cityscapes
     CITY_STUDIED: str = os.getenv('CITY_STUDIED', "Rio De Janeiro")
+    UPD_DATASET: str = os.getenv('UPD_DATASET', "UPD4k")
 
     USE_UPD: bool = ast.literal_eval(os.getenv('USE_UPD', "True"))
     FILTER_FEATURES: bool = ast.literal_eval(os.getenv('FILTER_FEATURES', "False"))

@@ -15,9 +15,9 @@ class UrbanPhysicalDisorder(): # disorder objects
                 ):
                 
         self.data_path = data_path
-        self.ade20k_path = f"{self.data_path}/ade20k/"
-        self.upd4k_path = f"{self.data_path}/upd4k/"
-        self.cityscapes_path = f"{self.data_path}/cityscapes/"
+        self.ade20k_path = f"{self.data_path}/ADE20k/"
+        self.upd4k_path = f"{self.data_path}/UPD4k/"
+        self.cityscapes_path = f"{self.data_path}/CityScapes/"
         
         self.columns_list = columns_list
 
@@ -30,7 +30,7 @@ class UrbanPhysicalDisorder(): # disorder objects
         
         input_df = data_df.copy()
         
-        if "upd4k" in self.dataset_used and keep_disorder:
+        if "upd4k" in self.dataset_used.lower() and keep_disorder:
             columns_to_keep = self.columns_list + self.upd4k_labels
             cur_upd4k = input_df[columns_to_keep].copy()
             input_df.drop(columns=self.upd4k_labels, errors='ignore', inplace=True)
@@ -41,7 +41,7 @@ class UrbanPhysicalDisorder(): # disorder objects
         if aggregate_classes:
             input_df = self.aggregate_classes_by_groups(input_df)
             
-        if "upd4k" in self.dataset_used and keep_disorder:
+        if "upd4k" in self.dataset_used.lower() and keep_disorder:
             input_df = pd.merge(input_df, cur_upd4k, how="inner", on=self.columns_list)
 
         if binarize_values:
@@ -50,9 +50,9 @@ class UrbanPhysicalDisorder(): # disorder objects
         return input_df
     
     def get_groups(self):
-        if "ade20k" in self.dataset_used:
+        if "ade20k" in self.dataset_used.lower():
             return self.ade20k_groups
-        elif "cityscapes" in self.dataset_used:
+        elif "cityscapes" in self.dataset_used.lower():
             return self.cityscapes_groups
         else:
             return None
@@ -65,7 +65,7 @@ class UrbanPhysicalDisorder(): # disorder objects
     
     def street_categories_group(self):
         street_df = self.objects_df[:self.dataset_len].copy()
-        if "upd4k" in self.dataset_used:
+        if "upd4k" in self.dataset_used.lower():
             upd_df = self.objects_df[self.dataset_len:].copy()
             upd_first_rows = upd_df.groupby('group_name', as_index=False).first().copy()
             upd_class_ids = upd_df.groupby('group_name')['class_id'].agg(list).reset_index()
@@ -99,16 +99,16 @@ class UrbanPhysicalDisorder(): # disorder objects
 
         group_df['RGB_color'] = group_df['RGB_color'].apply(ast.literal_eval)
         
-        if "upd4k" in self.dataset_used:
+        if "upd4k" in self.dataset_used.lower():
             return pd.concat([group_df, upd_df], ignore_index=True)
         else:
             return group_df
 
     def generate_dataset(self, dataset=None):
-        if "ade20k" in dataset:
+        if "ade20k" in dataset.lower():
             self.read_ade20k_classes()
             self.dataset_len = 150
-            if "upd4k" in dataset:
+            if "upd4k" in dataset.lower():
                 self.read_upd4k_classes()
                 upd4k_df_ = self.upd4k_df.copy()
                 upd4k_df_["class_id"] = (upd4k_df_.index + 151).tolist()
@@ -124,11 +124,11 @@ class UrbanPhysicalDisorder(): # disorder objects
                 self.ade20k_labels = self.ade20k_df["main_class"].tolist()
                 self.ade20k_groups = self.ade20k_df.set_index('main_class')['group_name'].to_dict()
         
-        elif "cityscapes" in dataset:
+        elif "cityscapes" in dataset.lower():
             seg_path = f"{self.data_path}/cityscapes/"
             self.read_cityscapes_classes(seg_path)
             self.dataset_len = 18
-            if "upd4k" in dataset:
+            if "upd4k" in dataset.lower():
                 upd4k_df_ = self.upd4k_df.copy()
                 upd4k_df_["class_id"] = (upd4k_df_.index + 19).tolist()
                 objects_df = pd.concat([self.cityscapes_df, upd4k_df_], ignore_index=True)
