@@ -68,7 +68,14 @@ To download Street view images, please do not hesitate to send a message.
 If you use this data, please cite:
 
 ```
-
+@inproceedings{moreno2025UrbanPD4k,
+  author={Moreno-Vera, Felipe and De-la-Puente, Andres and Poco, Jorge},
+  booktitle={2025 IEEE International Conference on Big Data (BigData)}, 
+  title={UrbanPhysicalDisorder-4K: Understanding Urban Perception via Counterfactuals and Street View Signs of Physical Disorder}, 
+  year={2025},
+  pages={5194-5200},
+  doi={10.1109/BigData66926.2025.11401786}
+}
 ```
 
 # Contact us  
