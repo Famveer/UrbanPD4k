@@ -227,7 +227,7 @@ class CounterfactualAnalyzer:
         
         self.nearest_cf_variation = pd.concat([self.nearest_cf_variation, closest_row_diff], ignore_index=True)
     
-    def plot_variations(self, fig_size=(40, 30), top_k=None, color_dict=None):
+    def plot_variations(self, fig_size=(40, 30), palette=None, top_k=None):
         """
         Plot number of variations in counterfactuals.
         
@@ -253,6 +253,12 @@ class CounterfactualAnalyzer:
             
             if top_k is not None:
                 sorted_columns = sorted_columns[:top_k]
+                
+            if palette is not None:
+                palette = {
+                    k: tuple(v / 255 for v in rgb) if max(rgb) > 1 else rgb
+                    for k, rgb in palette.items()
+                }
             
             sns_fig = sns.boxplot(
                 data=features_df[sorted_columns],
@@ -263,7 +269,7 @@ class CounterfactualAnalyzer:
                 showcaps=False,
                 color="steelblue",
                 native_scale=True,
-                palette=color_dict,
+                palette=palette,
             )
             
             sns_fig.set_title("CounterFactuals", fontsize=0)
