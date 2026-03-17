@@ -4,6 +4,10 @@
 
 This is the repository for the [UPD4K Dataset](https://visualdslab.com/papers/UrbanPD4k/). We provide some information of the dataset, and [starter code](./notebooks/) to explore the data. [Paper](http://fmorenovr.github.io/documents/papers/conferences/2025_BigData.pdf).
 
+# Requirements
+
+- **Python**>=3.12
+
 ## Overview
 UPD4K is composed of more than 3.9K images from the Street view images. Images are fully annotated with objects, spanning over 163 object categories. Many of the images also contain physical disorder objects, such as overhead cables, garbage, etc. We also provide annotated masks and labels, as well as object instances for amodal segmentation. Images are also anonymized, blurring faces and license plates.
 
