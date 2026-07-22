@@ -2,7 +2,7 @@
 
 <img src="./.media/stats.png"  height=400px;>
 
-This is the repository for the [UPD4K Dataset](https://visualdslab.com/papers/UrbanPD4k/). We provide some information of the dataset, and [starter code](./notebooks/) to explore the data. [Paper](http://fmorenovr.github.io/documents/papers/conferences/2025_BigData.pdf).
+This is the repository for the [UPD4K Dataset](https://visualdslab.com/papers/UrbanPD4k/). [Paper](http://fmorenovr.github.io/documents/papers/conferences/2025_BigData.pdf).
 
 # Requirements
 
